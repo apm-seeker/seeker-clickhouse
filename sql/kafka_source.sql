@@ -44,3 +44,23 @@ SETTINGS
     kafka_thread_per_consumer       = 1,
     input_format_import_nested_json           = 1,
     input_format_json_read_objects_as_strings = 1;
+
+-- metric 토픽: METRIC_SNAPSHOT (한 메시지에 여러 metric point 가 묶여 옴)
+CREATE TABLE IF NOT EXISTS kafka_metric
+(
+    eventType LowCardinality(String),
+    timestamp Int64,
+    payload   String
+)
+ENGINE = Kafka
+SETTINGS
+    kafka_broker_list               = 'seeker-kafka:29092',
+    kafka_topic_list                = 'metric',
+    kafka_group_name                = 'clickhouse-metric-consumer',
+    kafka_format                    = 'JSONEachRow',
+    kafka_num_consumers             = 1,
+    kafka_max_block_size            = 65536,
+    kafka_skip_broken_messages      = 100,
+    kafka_thread_per_consumer       = 1,
+    input_format_import_nested_json           = 1,
+    input_format_json_read_objects_as_strings = 1;

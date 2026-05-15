@@ -73,3 +73,25 @@ SELECT
     CAST(NULL AS Nullable(String))                               AS agent_group
 FROM kafka_agent_events
 WHERE eventType = 'AGENT_DELETED';
+
+-- ============================================================
+-- metric → metric (snapshot.points[] 를 ARRAY JOIN 으로 row 단위 fan-out)
+-- ============================================================
+
+CREATE MATERIALIZED VIEW IF NOT EXISTS mv_metric TO metric AS
+SELECT
+    JSONExtractString(payload, 'applicationName')                  AS application_name,
+    JSONExtractString(payload, 'agentId')                          AS agent_id,
+    fromUnixTimestamp64Milli(JSONExtractInt(payload, 'timestamp')) AS timestamp,
+    JSONExtractInt(payload, 'collectIntervalMs')                   AS collect_interval_ms,
+    point.1                                                        AS metric_name,
+    point.2                                                        AS field_name,
+    point.3                                                        AS value,
+    point.4                                                        AS type,
+    point.5                                                        AS tags
+FROM kafka_metric
+ARRAY JOIN JSONExtract(
+    payload, 'points',
+    'Array(Tuple(metricName String, fieldName String, value Float64, type String, tags Map(String, String)))'
+) AS point
+WHERE eventType = 'METRIC_SNAPSHOT';
