@@ -43,7 +43,8 @@ SELECT
     JSONExtractInt(payload, 'elapsedTime')                         AS elapsed_time,
     JSONExtract(payload, 'className', 'Nullable(String)')          AS class_name,
     JSONExtract(payload, 'methodName', 'Nullable(String)')         AS method_name,
-    JSONExtract(payload, 'exceptionInfo', 'Nullable(String)')      AS exception_info
+    JSONExtract(payload, 'exceptionInfo', 'Nullable(String)')      AS exception_info,
+    JSONExtract(payload, 'attributes', 'Map(String, String)')      AS attributes
 FROM kafka_trace_data
 WHERE eventType = 'SPAN_EVENT';
 
