@@ -52,6 +52,7 @@ CREATE TABLE IF NOT EXISTS span_event
     class_name      Nullable(String),
     method_name     Nullable(String),
     exception_info  Nullable(String),
+    attributes      Map(String, String),
     ingested_at     DateTime DEFAULT now()
 )
 ENGINE = MergeTree
