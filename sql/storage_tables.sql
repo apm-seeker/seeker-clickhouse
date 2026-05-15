@@ -76,3 +76,24 @@ ENGINE = MergeTree
 PARTITION BY toYYYYMM(event_time)
 ORDER BY (agent_id, event_time)
 SETTINGS index_granularity = 8192;
+
+-- metric: 에이전트가 보낸 일반화 메트릭 (JVM, transaction, response_time 등)
+-- collector 의 MetricSnapshot 한 건이 points[] 길이만큼 fan-out 되어 적재된다.
+CREATE TABLE IF NOT EXISTS metric
+(
+    application_name    LowCardinality(String),
+    agent_id            String,
+    timestamp           DateTime64(3),
+    collect_interval_ms Int64,
+    metric_name         LowCardinality(String),
+    field_name          LowCardinality(String),
+    value               Float64,
+    type                LowCardinality(String),
+    tags                Map(String, String),
+    ingested_at         DateTime DEFAULT now()
+)
+ENGINE = MergeTree
+PARTITION BY toYYYYMMDD(timestamp)
+ORDER BY (agent_id, metric_name, field_name, timestamp)
+TTL toDateTime(timestamp) + INTERVAL 30 DAY
+SETTINGS index_granularity = 8192;
